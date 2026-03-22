@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 revision = "0001_initial_schema"
@@ -17,7 +18,7 @@ branch_labels = None
 depends_on = None
 
 
-permit_status = sa.Enum(
+permit_status = postgresql.ENUM(
     "draft",
     "submitted",
     "under_review",
@@ -27,13 +28,15 @@ permit_status = sa.Enum(
     "completed",
     "cancelled",
     name="permitstatus",
+    create_type=False,
 )
 
-approval_status = sa.Enum(
+approval_status = postgresql.ENUM(
     "pending",
     "approved",
     "rejected",
     name="approvalstatus",
+    create_type=False,
 )
 
 

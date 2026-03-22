@@ -9,4 +9,7 @@ services/
   api_service/
     src/app/
     src/tests/
+  approval_worker/
+    src/app/
+    src/tests/
 ```
