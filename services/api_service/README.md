@@ -19,11 +19,39 @@ MVP-сервис для платформы управления нарядами
 ```bash
 cd services/api_service
 poetry install
+poetry run alembic upgrade head
 poetry run uvicorn app.main:app --app-dir src --reload
 ```
 
 Локальные настройки берутся из [`.env`](/Users/zhozhyr/PycharmProjects/gazprom/services/api_service/.env).
 Docker-сценарий использует отдельный файл [`.env.docker`](/Users/zhozhyr/PycharmProjects/gazprom/services/api_service/.env.docker) с `Postgres` и `Kafka`.
+
+## Миграции
+
+Применить миграции:
+
+```bash
+poetry run alembic upgrade head
+```
+
+Если локальная `sqlite`-база была создана старым `create_all`, сначала либо удалите файл БД и примените миграции заново:
+
+```bash
+rm -f permit_api.db
+poetry run alembic upgrade head
+```
+
+либо пометьте текущую схему как уже соответствующую первой ревизии:
+
+```bash
+poetry run alembic stamp head
+```
+
+Откатить последнюю миграцию:
+
+```bash
+poetry run alembic downgrade -1
+```
 
 ## Базовые endpoints
 
