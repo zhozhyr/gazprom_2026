@@ -1,6 +1,6 @@
 # Approval Worker
 
-Kafka worker, который слушает `permits.submitted` и переводит наряд в статус `under_review`.
+Kafka worker, который слушает `permits.compliance_passed` и переводит наряд в статус `under_review`.
 
 ## Запуск
 

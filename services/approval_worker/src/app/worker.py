@@ -23,7 +23,7 @@ class ApprovalWorker:
         permit_id = int(payload["permit_id"])
         async with SessionLocal() as session:
             service = ApprovalService(session)
-            permit = await service.process_submitted_permit(permit_id)
+            permit = await service.process_compliance_passed_permit(permit_id)
             if permit is None:
                 logger.warning("Permit %s not found", permit_id)
                 return

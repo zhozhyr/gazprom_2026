@@ -1,16 +1,16 @@
 import pytest
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.db.base import Base
-from app.models.enums import PermitStatus
+from app.models.enums import ApprovalStatus, PermitStatus
 from app.models.permit import Permit
+from app.models.permit_approval import PermitApproval
 from app.models.permit_status_history import PermitStatusHistory
-from app.services.approval_service import ApprovalService
+from app.services.compliance_service import ComplianceService
 
 
 @pytest.mark.asyncio
-async def test_process_submitted_permit_moves_to_under_review() -> None:
+async def test_compliance_passes_when_safety_measures_and_approval_exist() -> None:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
@@ -26,24 +26,27 @@ async def test_process_submitted_permit_moves_to_under_review() -> None:
             facility_id=1,
             work_type_id=1,
             created_by_id=1,
+            approvals=[
+                PermitApproval(
+                    approver_employee_id=2,
+                    status=ApprovalStatus.pending,
+                    comment="",
+                )
+            ],
             status_history=[PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")],
         )
         session.add(permit)
         await session.commit()
 
-        service = ApprovalService(session)
-        updated = await service.process_compliance_passed_permit(permit.id)
+        service = ComplianceService(session)
+        result = await service.process_submitted_permit(permit.id)
 
-        assert updated is not None
-        assert updated.status == PermitStatus.under_review
-
-        result = await session.execute(select(Permit).where(Permit.id == permit.id))
-        persisted = result.scalar_one()
-        assert persisted.status == PermitStatus.under_review
+        assert result.passed is True
+        assert result.reason == "Compliance passed"
 
 
 @pytest.mark.asyncio
-async def test_process_submitted_permit_ignores_non_submitted_status() -> None:
+async def test_compliance_fails_and_rejects_permit_when_safety_measures_empty() -> None:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
     session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
@@ -52,20 +55,24 @@ async def test_process_submitted_permit_ignores_non_submitted_status() -> None:
 
     async with session_factory() as session:
         permit = Permit(
-            title="Compressor inspection",
-            description="Inspection before shift",
-            status=PermitStatus.approved,
-            safety_measures="Checklist completed",
+            title="Hot work",
+            description="Repair work",
+            status=PermitStatus.submitted,
+            safety_measures="   ",
             facility_id=1,
             work_type_id=1,
             created_by_id=1,
-            status_history=[PermitStatusHistory(status=PermitStatus.approved, note="Already approved")],
+            approvals=[],
+            status_history=[PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")],
         )
         session.add(permit)
         await session.commit()
 
-        service = ApprovalService(session)
-        unchanged = await service.process_compliance_passed_permit(permit.id)
+        service = ComplianceService(session)
+        result = await service.process_submitted_permit(permit.id)
 
-        assert unchanged is not None
-        assert unchanged.status == PermitStatus.approved
+        assert result.passed is False
+        assert "safety_measures must not be empty" in result.reason
+        assert "at least one approval step" in result.reason
+        assert result.permit is not None
+        assert result.permit.status == PermitStatus.rejected
