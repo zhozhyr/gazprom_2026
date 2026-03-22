@@ -11,7 +11,7 @@ class ApprovalService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def process_submitted_permit(self, permit_id: int) -> Permit | None:
+    async def process_compliance_passed_permit(self, permit_id: int) -> Permit | None:
         result = await self.session.execute(
             select(Permit).where(Permit.id == permit_id).options(selectinload(Permit.status_history))
         )

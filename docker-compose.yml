@@ -78,5 +78,17 @@ services:
     env_file:
       - ./services/approval_worker/.env.docker
 
+  compliance_worker:
+    build:
+      context: .
+      dockerfile: services/compliance_worker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    env_file:
+      - ./services/compliance_worker/.env.docker
+
 volumes:
   postgres_data:

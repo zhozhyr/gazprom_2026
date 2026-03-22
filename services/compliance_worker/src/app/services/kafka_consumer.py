@@ -8,7 +8,7 @@ from app.config import settings
 class KafkaEventConsumer:
     def __init__(self) -> None:
         self.consumer = AIOKafkaConsumer(
-            settings.kafka_topic_compliance_passed,
+            settings.kafka_topic_permit_submitted,
             bootstrap_servers=settings.kafka_bootstrap_servers,
             client_id=settings.kafka_client_id,
             group_id=settings.kafka_group_id,
