@@ -1,6 +1,6 @@
 # API Service
 
-Первый MVP-сервис для платформы управления нарядами-допусками.
+MVP-сервис для платформы управления нарядами-допусками.
 
 ## Что есть сейчас
 
@@ -21,6 +21,9 @@ cd services/api_service
 poetry install
 poetry run uvicorn app.main:app --app-dir src --reload
 ```
+
+Локальные настройки берутся из [`.env`](/Users/zhozhyr/PycharmProjects/gazprom/services/api_service/.env).
+Docker-сценарий использует отдельный файл [`.env.docker`](/Users/zhozhyr/PycharmProjects/gazprom/services/api_service/.env.docker) с `Postgres` и `Kafka`.
 
 ## Базовые endpoints
 

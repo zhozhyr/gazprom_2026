@@ -62,7 +62,7 @@ services:
       kafka:
         condition: service_healthy
     env_file:
-      - ./services/api_service/.env.example
+      - ./services/api_service/.env.docker
     ports:
       - "8000:8000"
 
