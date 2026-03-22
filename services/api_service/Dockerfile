@@ -13,6 +13,8 @@ RUN pip install "poetry==$POETRY_VERSION"
 COPY services/api_service/pyproject.toml ./pyproject.toml
 RUN poetry install --only main
 
+COPY services/api_service/alembic.ini ./alembic.ini
+COPY services/api_service/migrations ./migrations
 COPY services/api_service/src ./src
 
-CMD ["uvicorn", "app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000"]
