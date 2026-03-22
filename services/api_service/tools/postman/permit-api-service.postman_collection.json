@@ -3,7 +3,7 @@
     "_postman_id": "2d4c94c4-d5fd-4d0f-9f65-2df66d9f4b4f",
     "name": "Permit API Service",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection for the permit-to-work MVP."
+    "description": "Postman collection for the permit-to-work MVP with compliance and approval workers."
   },
   "variable": [
     {
@@ -13,6 +13,10 @@
     {
       "key": "permitId",
       "value": "1"
+    },
+    {
+      "key": "invalidPermitId",
+      "value": "2"
     }
   ],
   "item": [
@@ -33,205 +37,322 @@
       }
     },
     {
-      "name": "Create Facility",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"GRS-1\",\n  \"facility_type\": \"gas_distribution_station\",\n  \"location\": \"Moscow region\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/facilities",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "facilities"
-          ]
-        }
-      }
-    },
-    {
-      "name": "Create Initiator",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"full_name\": \"Ivan Petrov\",\n  \"role\": \"Initiator\",\n  \"department\": \"Operations\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/employees",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "employees"
-          ]
-        }
-      }
-    },
-    {
-      "name": "Create Approver",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"full_name\": \"Anna Sidorova\",\n  \"role\": \"Safety Engineer\",\n  \"department\": \"HSE\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/employees",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "employees"
-          ]
-        }
-      }
-    },
-    {
-      "name": "Create Work Type",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Hot work\",\n  \"risk_level\": \"critical\",\n  \"description\": \"Welding and flame work\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/work-types",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "work-types"
-          ]
-        }
-      }
-    },
-    {
-      "name": "Create Permit",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Pipeline welding\",\n  \"description\": \"Repair welding on line 4\",\n  \"safety_measures\": \"Gas analysis, barriers, extinguishers\",\n  \"facility_id\": 1,\n  \"work_type_id\": 1,\n  \"created_by_id\": 1,\n  \"approver_employee_id\": 2\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/permits",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "permits"
-          ]
-        }
-      },
-      "event": [
+      "name": "Setup Data",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "const json = pm.response.json();",
-              "if (json.id) {",
-              "  pm.collectionVariables.set('permitId', json.id);",
-              "}"
-            ]
+          "name": "Create Facility",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"GRS-1\",\n  \"facility_type\": \"gas_distribution_station\",\n  \"location\": \"Moscow region\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/facilities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "facilities"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Initiator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ivan Petrov\",\n  \"role\": \"Initiator\",\n  \"department\": \"Operations\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Approver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Anna Sidorova\",\n  \"role\": \"Safety Engineer\",\n  \"department\": \"HSE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Work Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hot work\",\n  \"risk_level\": \"critical\",\n  \"description\": \"Welding and flame work\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/work-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "work-types"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "Submit Permit",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/permits/{{permitId}}/submit",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "permits",
-            "{{permitId}}",
-            "submit"
+      "name": "Happy Path",
+      "item": [
+        {
+          "name": "Create Valid Permit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pipeline welding\",\n  \"description\": \"Repair welding on line 4\",\n  \"safety_measures\": \"Gas analysis, barriers, extinguishers\",\n  \"facility_id\": 1,\n  \"work_type_id\": 1,\n  \"created_by_id\": 1,\n  \"approver_employee_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('permitId', json.id);",
+                  "}"
+                ]
+              }
+            }
           ]
-        }
-      }
-    },
-    {
-      "name": "Get Permit",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/permits/{{permitId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "permits",
-            "{{permitId}}"
-          ]
-        }
-      }
-    },
-    {
-      "name": "Approve Permit",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"approver_employee_id\": 2,\n  \"comment\": \"All safety controls are in place\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/permits/{{permitId}}/approve",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "permits",
-            "{{permitId}}",
-            "approve"
+        {
+          "name": "Submit Valid Permit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}",
+                "submit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Valid Permit After Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Permit moved to under_review', function () {",
+                  "  pm.expect(json.status).to.eql('under_review');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve Valid Permit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approver_employee_id\": 2,\n  \"comment\": \"All safety controls are in place\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}",
+                "approve"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Compliance Failure",
+      "item": [
+        {
+          "name": "Create Invalid Permit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unsafe permit\",\n  \"description\": \"Attempt without safety details\",\n  \"safety_measures\": \"   \",\n  \"facility_id\": 1,\n  \"work_type_id\": 1,\n  \"created_by_id\": 1,\n  \"approver_employee_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('invalidPermitId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit Invalid Permit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{invalidPermitId}}/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{invalidPermitId}}",
+                "submit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invalid Permit After Compliance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{invalidPermitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{invalidPermitId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Permit rejected by compliance worker', function () {",
+                  "  pm.expect(json.status).to.eql('rejected');",
+                  "});"
+                ]
+              }
+            }
           ]
         }
-      }
+      ]
     },
     {
       "name": "List Permits",
