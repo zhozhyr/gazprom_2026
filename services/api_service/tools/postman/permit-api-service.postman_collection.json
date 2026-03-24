@@ -17,6 +17,10 @@
     {
       "key": "invalidPermitId",
       "value": "2"
+    },
+    {
+      "key": "notificationId",
+      "value": "1"
     }
   ],
   "item": [
@@ -233,6 +237,58 @@
           ]
         },
         {
+          "name": "List Notifications For Valid Permit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const permitId = Number(pm.collectionVariables.get('permitId'));",
+                  "const match = json.find(item => Number(item.permit_id) === permitId);",
+                  "pm.test('Notification exists for valid permit', function () {",
+                  "  pm.expect(match).to.exist;",
+                  "});",
+                  "if (match && match.id) {",
+                  "  pm.collectionVariables.set('notificationId', match.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Notification",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}"
+              ]
+            }
+          }
+        },
+        {
           "name": "Approve Valid Permit",
           "request": {
             "method": "POST",
@@ -351,8 +407,56 @@
               }
             }
           ]
+        },
+        {
+          "name": "List Notifications For Invalid Permit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const permitId = Number(pm.collectionVariables.get('invalidPermitId'));",
+                  "const match = json.find(item => Number(item.permit_id) === permitId && item.event_type === 'permits.compliance_failed');",
+                  "pm.test('Compliance failure notification exists', function () {",
+                  "  pm.expect(match).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
+    },
+    {
+      "name": "List Notifications",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/notifications",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "notifications"
+          ]
+        }
+      }
     },
     {
       "name": "List Permits",
