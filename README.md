@@ -15,4 +15,7 @@ services/
   compliance_worker/
     src/app/
     src/tests/
+  notification_worker/
+    src/app/
+    src/tests/
 ```

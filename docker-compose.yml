@@ -65,12 +65,20 @@ services:
       - ./services/api_service/.env.docker
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\" >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   approval_worker:
     build:
       context: .
       dockerfile: services/approval_worker/Dockerfile
     depends_on:
+      api_service:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       kafka:
@@ -83,12 +91,28 @@ services:
       context: .
       dockerfile: services/compliance_worker/Dockerfile
     depends_on:
+      api_service:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       kafka:
         condition: service_healthy
     env_file:
       - ./services/compliance_worker/.env.docker
+
+  notification_worker:
+    build:
+      context: .
+      dockerfile: services/notification_worker/Dockerfile
+    depends_on:
+      api_service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    env_file:
+      - ./services/notification_worker/.env.docker
 
 volumes:
   postgres_data:
