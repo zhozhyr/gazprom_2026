@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from app.db.session import SessionLocal
 from app.services.approval_service import ApprovalService
@@ -20,7 +21,7 @@ class ApprovalWorker:
             await self.consumer.stop()
 
     async def process_message(self, payload: dict[str, object]) -> None:
-        permit_id = int(payload["permit_id"])
+        permit_id = int(cast(int | str, payload["permit_id"]))
         async with SessionLocal() as session:
             service = ApprovalService(session)
             permit = await service.process_compliance_passed_permit(permit_id)

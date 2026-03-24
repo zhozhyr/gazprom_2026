@@ -31,7 +31,11 @@ class ComplianceService:
             return ComplianceResult(permit=None, passed=False, reason="Permit not found")
 
         if permit.status != PermitStatus.submitted:
-            return ComplianceResult(permit=permit, passed=False, reason=f"Permit status is {permit.status.value}")
+            return ComplianceResult(
+                permit=permit,
+                passed=False,
+                reason=f"Permit status is {permit.status.value}",
+            )
 
         reasons: list[str] = []
         if not permit.safety_measures.strip():

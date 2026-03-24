@@ -23,7 +23,11 @@ async def create_session_factory() -> async_sessionmaker[AsyncSession]:
 async def seed_reference_data(session: AsyncSession) -> None:
     session.add_all(
         [
-            Facility(name="GRS-1", facility_type="gas_distribution_station", location="Moscow region"),
+            Facility(
+                name="GRS-1",
+                facility_type="gas_distribution_station",
+                location="Moscow region",
+            ),
             WorkType(name="Hot work", risk_level="critical", description="Welding and flame work"),
             Employee(full_name="Ivan Petrov", role="Initiator", department="Operations"),
             Employee(full_name="Anna Sidorova", role="Safety Engineer", department="HSE"),
@@ -144,7 +148,9 @@ async def test_create_permit_with_missing_reference_raises_not_found() -> None:
 
 
 @pytest.mark.asyncio
-async def test_approve_with_wrong_employee_raises_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_approve_with_wrong_employee_raises_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     session_factory = await create_session_factory()
 
     async def fake_publish(topic: str, payload: dict[str, object]) -> None:

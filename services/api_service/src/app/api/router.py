@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,6 +6,7 @@ from app.db.session import get_session
 from app.models.employee import Employee
 from app.models.facility import Facility
 from app.models.notification import Notification
+from app.models.permit import Permit
 from app.models.work_type import WorkType
 from app.schemas.employee import EmployeeCreate, EmployeeRead
 from app.schemas.facility import FacilityCreate, FacilityRead
@@ -23,7 +24,10 @@ async def healthcheck() -> dict[str, str]:
 
 
 @router.post("/facilities", response_model=FacilityRead, status_code=status.HTTP_201_CREATED)
-async def create_facility(payload: FacilityCreate, session: AsyncSession = Depends(get_session)) -> Facility:
+async def create_facility(
+    payload: FacilityCreate,
+    session: AsyncSession = Depends(get_session),
+) -> Facility:
     facility = Facility(**payload.model_dump())
     session.add(facility)
     await session.commit()
@@ -38,7 +42,10 @@ async def list_facilities(session: AsyncSession = Depends(get_session)) -> list[
 
 
 @router.post("/employees", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
-async def create_employee(payload: EmployeeCreate, session: AsyncSession = Depends(get_session)) -> Employee:
+async def create_employee(
+    payload: EmployeeCreate,
+    session: AsyncSession = Depends(get_session),
+) -> Employee:
     employee = Employee(**payload.model_dump())
     session.add(employee)
     await session.commit()
@@ -59,18 +66,22 @@ async def list_notifications(session: AsyncSession = Depends(get_session)) -> li
 
 
 @router.get("/notifications/{notification_id}", response_model=NotificationRead)
-async def get_notification(notification_id: int, session: AsyncSession = Depends(get_session)) -> Notification:
+async def get_notification(
+    notification_id: int,
+    session: AsyncSession = Depends(get_session),
+) -> Notification:
     result = await session.execute(select(Notification).where(Notification.id == notification_id))
     notification = result.scalar_one_or_none()
     if notification is None:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="Notification not found")
     return notification
 
 
 @router.post("/work-types", response_model=WorkTypeRead, status_code=status.HTTP_201_CREATED)
-async def create_work_type(payload: WorkTypeCreate, session: AsyncSession = Depends(get_session)) -> WorkType:
+async def create_work_type(
+    payload: WorkTypeCreate,
+    session: AsyncSession = Depends(get_session),
+) -> WorkType:
     work_type = WorkType(**payload.model_dump())
     session.add(work_type)
     await session.commit()
@@ -85,25 +96,28 @@ async def list_work_types(session: AsyncSession = Depends(get_session)) -> list[
 
 
 @router.post("/permits", response_model=PermitRead, status_code=status.HTTP_201_CREATED)
-async def create_permit(payload: PermitCreate, session: AsyncSession = Depends(get_session)) -> PermitRead:
+async def create_permit(
+    payload: PermitCreate,
+    session: AsyncSession = Depends(get_session),
+) -> Permit:
     service = PermitService(session)
     return await service.create_permit(payload)
 
 
 @router.get("/permits", response_model=list[PermitRead])
-async def list_permits(session: AsyncSession = Depends(get_session)) -> list[PermitRead]:
+async def list_permits(session: AsyncSession = Depends(get_session)) -> list[Permit]:
     service = PermitService(session)
     return await service.list_permits()
 
 
 @router.get("/permits/{permit_id}", response_model=PermitRead)
-async def get_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> PermitRead:
+async def get_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> Permit:
     service = PermitService(session)
     return await service.get_permit(permit_id)
 
 
 @router.post("/permits/{permit_id}/submit", response_model=PermitRead)
-async def submit_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> PermitRead:
+async def submit_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> Permit:
     service = PermitService(session)
     return await service.submit_permit(permit_id)
 
@@ -113,7 +127,7 @@ async def approve_permit(
     permit_id: int,
     payload: PermitAction,
     session: AsyncSession = Depends(get_session),
-) -> PermitRead:
+) -> Permit:
     service = PermitService(session)
     return await service.approve_permit(permit_id, payload)
 
@@ -123,6 +137,6 @@ async def reject_permit(
     permit_id: int,
     payload: PermitAction,
     session: AsyncSession = Depends(get_session),
-) -> PermitRead:
+) -> Permit:
     service = PermitService(session)
     return await service.reject_permit(permit_id, payload)

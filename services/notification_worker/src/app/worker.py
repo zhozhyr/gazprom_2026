@@ -23,4 +23,8 @@ class NotificationWorker:
         async with SessionLocal() as session:
             service = NotificationService(session)
             notification = await service.handle_event(topic, payload)
-            logger.info("Stored notification %s for permit %s", notification.id, notification.permit_id)
+            logger.info(
+                "Stored notification %s for permit %s",
+                notification.id,
+                notification.permit_id,
+            )

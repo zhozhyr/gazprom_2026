@@ -1,1 +1,14 @@
 .idea/
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+*.db
+
+# Poetry
+poetry.toml
+
+# macOS
+.DS_Store
