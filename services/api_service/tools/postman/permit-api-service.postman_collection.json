@@ -318,6 +318,129 @@
       ]
     },
     {
+      "name": "Draft Edit And Delete",
+      "item": [
+        {
+          "name": "Create Draft Permit For Update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Draft permit\",\n  \"description\": \"Draft permit before submit\",\n  \"safety_measures\": \"Initial controls\",\n  \"facility_id\": 1,\n  \"work_type_id\": 1,\n  \"created_by_id\": 1,\n  \"approver_employee_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('permitId', json.id);",
+                  "}",
+                  "pm.test('Draft permit created', function () {",
+                  "  pm.expect(json.status).to.eql('draft');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patch Draft Permit",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated draft permit\",\n  \"safety_measures\": \"Updated controls\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Draft permit updated', function () {",
+                  "  pm.expect(json.title).to.eql('Updated draft permit');",
+                  "  pm.expect(json.safety_measures).to.eql('Updated controls');",
+                  "  pm.expect(json.status).to.eql('draft');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Draft Permit After Patch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Draft Permit",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/permits/{{permitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permits",
+                "{{permitId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Compliance Failure",
       "item": [
         {
