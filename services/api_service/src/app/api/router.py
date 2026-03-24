@@ -5,9 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.models.employee import Employee
 from app.models.facility import Facility
+from app.models.notification import Notification
 from app.models.work_type import WorkType
 from app.schemas.employee import EmployeeCreate, EmployeeRead
 from app.schemas.facility import FacilityCreate, FacilityRead
+from app.schemas.notification import NotificationRead
 from app.schemas.permit import PermitAction, PermitCreate, PermitRead
 from app.schemas.work_type import WorkTypeCreate, WorkTypeRead
 from app.services.permit_service import PermitService
@@ -48,6 +50,23 @@ async def create_employee(payload: EmployeeCreate, session: AsyncSession = Depen
 async def list_employees(session: AsyncSession = Depends(get_session)) -> list[Employee]:
     result = await session.execute(select(Employee).order_by(Employee.id.desc()))
     return list(result.scalars().all())
+
+
+@router.get("/notifications", response_model=list[NotificationRead])
+async def list_notifications(session: AsyncSession = Depends(get_session)) -> list[Notification]:
+    result = await session.execute(select(Notification).order_by(Notification.id.desc()))
+    return list(result.scalars().all())
+
+
+@router.get("/notifications/{notification_id}", response_model=NotificationRead)
+async def get_notification(notification_id: int, session: AsyncSession = Depends(get_session)) -> Notification:
+    result = await session.execute(select(Notification).where(Notification.id == notification_id))
+    notification = result.scalar_one_or_none()
+    if notification is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return notification
 
 
 @router.post("/work-types", response_model=WorkTypeRead, status_code=status.HTTP_201_CREATED)
