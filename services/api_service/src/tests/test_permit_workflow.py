@@ -6,8 +6,7 @@ from app.db.base import Base
 from app.models.employee import Employee
 from app.models.facility import Facility
 from app.models.work_type import WorkType
-from app.schemas.permit import PermitAction, PermitCreate
-from app.schemas.permit import PermitUpdate
+from app.schemas.permit import PermitAction, PermitCreate, PermitUpdate
 from app.services.permit_service import PermitService
 
 
