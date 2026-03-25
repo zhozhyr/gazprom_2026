@@ -1,3 +1,5 @@
+from typing import cast
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.notification import Notification
@@ -8,7 +10,7 @@ class NotificationService:
         self.session = session
 
     async def handle_event(self, topic: str, payload: dict[str, object]) -> Notification:
-        permit_id = int(payload["permit_id"])
+        permit_id = int(cast(int | str, payload["permit_id"]))
         notification = Notification(
             permit_id=permit_id,
             event_type=topic,
@@ -26,5 +28,6 @@ class NotificationService:
         if topic.endswith("compliance_passed"):
             return f"Permit #{payload['permit_id']} passed compliance checks."
         if topic.endswith("compliance_failed"):
-            return f"Permit #{payload['permit_id']} failed compliance: {payload.get('reason', 'unknown reason')}."
+            reason = payload.get("reason", "unknown reason")
+            return f"Permit #{payload['permit_id']} failed compliance: {reason}."
         return f"Permit #{payload['permit_id']} event received."

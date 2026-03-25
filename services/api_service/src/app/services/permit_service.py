@@ -30,7 +30,12 @@ class PermitService:
         return permit
 
     async def create_permit(self, payload: PermitCreate) -> Permit:
-        await self._ensure_refs_exist(payload.facility_id, payload.work_type_id, payload.created_by_id, payload.approver_employee_id)
+        await self._ensure_refs_exist(
+            payload.facility_id,
+            payload.work_type_id,
+            payload.created_by_id,
+            payload.approver_employee_id,
+        )
 
         permit = Permit(
             title=payload.title,
@@ -66,7 +71,9 @@ class PermitService:
         for field, value in update_data.items():
             setattr(permit, field, value)
 
-        permit.status_history.append(PermitStatusHistory(status=PermitStatus.draft, note="Permit updated"))
+        permit.status_history.append(
+            PermitStatusHistory(status=PermitStatus.draft, note="Permit updated")
+        )
         await self.session.commit()
         return await self.get_permit(permit.id)
 
@@ -81,7 +88,9 @@ class PermitService:
         self._ensure_draft_status(permit, message="Only draft permits can be submitted")
 
         permit.status = PermitStatus.submitted
-        permit.status_history.append(PermitStatusHistory(status=PermitStatus.submitted, note="Permit submitted for review"))
+        permit.status_history.append(
+            PermitStatusHistory(status=PermitStatus.submitted, note="Permit submitted for review")
+        )
         await self.session.commit()
         await event_publisher.publish(
             settings.kafka_topic_permit_submitted,
@@ -92,13 +101,21 @@ class PermitService:
     async def approve_permit(self, permit_id: int, payload: PermitAction) -> Permit:
         permit = await self.get_permit(permit_id)
         if permit.status not in {PermitStatus.submitted, PermitStatus.under_review}:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Permit is not awaiting approval")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Permit is not awaiting approval",
+            )
 
         approval = self._get_approval_for_employee(permit, payload.approver_employee_id)
         approval.status = ApprovalStatus.approved
         approval.comment = payload.comment
         permit.status = PermitStatus.approved
-        permit.status_history.append(PermitStatusHistory(status=PermitStatus.approved, note=payload.comment or "Permit approved"))
+        permit.status_history.append(
+            PermitStatusHistory(
+                status=PermitStatus.approved,
+                note=payload.comment or "Permit approved",
+            )
+        )
         await self.session.commit()
         await event_publisher.publish(
             settings.kafka_topic_permit_reviewed,
@@ -113,13 +130,21 @@ class PermitService:
     async def reject_permit(self, permit_id: int, payload: PermitAction) -> Permit:
         permit = await self.get_permit(permit_id)
         if permit.status not in {PermitStatus.submitted, PermitStatus.under_review}:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Permit is not awaiting approval")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Permit is not awaiting approval",
+            )
 
         approval = self._get_approval_for_employee(permit, payload.approver_employee_id)
         approval.status = ApprovalStatus.rejected
         approval.comment = payload.comment
         permit.status = PermitStatus.rejected
-        permit.status_history.append(PermitStatusHistory(status=PermitStatus.rejected, note=payload.comment or "Permit rejected"))
+        permit.status_history.append(
+            PermitStatusHistory(
+                status=PermitStatus.rejected,
+                note=payload.comment or "Permit rejected",
+            )
+        )
         await self.session.commit()
         await event_publisher.publish(
             settings.kafka_topic_permit_reviewed,
@@ -146,13 +171,23 @@ class PermitService:
         ):
             await self._ensure_entity_exists(model, value)
 
-    async def _ensure_entity_exists(self, model: type[Facility] | type[WorkType] | type[Employee], value: int) -> None:
+    async def _ensure_entity_exists(
+        self,
+        model: type[Facility] | type[WorkType] | type[Employee],
+        value: int,
+    ) -> None:
         result = await self.session.execute(select(model).where(model.id == value))
         if result.scalar_one_or_none() is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Referenced entity not found: {model.__name__}#{value}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Referenced entity not found: {model.__name__}#{value}",
+            )
 
     @staticmethod
-    def _ensure_draft_status(permit: Permit, message: str = "Only draft permits can be modified") -> None:
+    def _ensure_draft_status(
+        permit: Permit,
+        message: str = "Only draft permits can be modified",
+    ) -> None:
         if permit.status != PermitStatus.draft:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
 
@@ -161,4 +196,7 @@ class PermitService:
         for approval in permit.approvals:
             if approval.approver_employee_id == approver_employee_id:
                 return approval
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Approval step not found for employee")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Approval step not found for employee",
+        )

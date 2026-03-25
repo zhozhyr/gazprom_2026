@@ -12,5 +12,9 @@ class Employee(Base):
     role: Mapped[str] = mapped_column(String(100))
     department: Mapped[str] = mapped_column(String(100))
 
-    created_permits = relationship("Permit", back_populates="created_by", foreign_keys="Permit.created_by_id")
+    created_permits = relationship(
+        "Permit",
+        back_populates="created_by",
+        foreign_keys="Permit.created_by_id",
+    )
     approvals = relationship("PermitApproval", back_populates="approver")

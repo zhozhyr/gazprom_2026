@@ -13,7 +13,9 @@ class ApprovalService:
 
     async def process_compliance_passed_permit(self, permit_id: int) -> Permit | None:
         result = await self.session.execute(
-            select(Permit).where(Permit.id == permit_id).options(selectinload(Permit.status_history))
+            select(Permit)
+            .where(Permit.id == permit_id)
+            .options(selectinload(Permit.status_history))
         )
         permit = result.scalar_one_or_none()
         if permit is None:

@@ -26,7 +26,9 @@ async def test_process_submitted_permit_moves_to_under_review() -> None:
             facility_id=1,
             work_type_id=1,
             created_by_id=1,
-            status_history=[PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")],
+            status_history=[
+                PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")
+            ],
         )
         session.add(permit)
         await session.commit()
@@ -59,7 +61,9 @@ async def test_process_submitted_permit_ignores_non_submitted_status() -> None:
             facility_id=1,
             work_type_id=1,
             created_by_id=1,
-            status_history=[PermitStatusHistory(status=PermitStatus.approved, note="Already approved")],
+            status_history=[
+                PermitStatusHistory(status=PermitStatus.approved, note="Already approved")
+            ],
         )
         session.add(permit)
         await session.commit()

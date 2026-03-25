@@ -1,5 +1,5 @@
-from sqlalchemy import Integer, Text
 from sqlalchemy import Enum as SqlEnum
+from sqlalchemy import Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -18,5 +18,13 @@ class Permit(Base):
     work_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
     created_by_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    approvals = relationship("PermitApproval", back_populates="permit", cascade="all, delete-orphan")
-    status_history = relationship("PermitStatusHistory", back_populates="permit", cascade="all, delete-orphan")
+    approvals = relationship(
+        "PermitApproval",
+        back_populates="permit",
+        cascade="all, delete-orphan",
+    )
+    status_history = relationship(
+        "PermitStatusHistory",
+        back_populates="permit",
+        cascade="all, delete-orphan",
+    )

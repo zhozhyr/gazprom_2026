@@ -29,7 +29,7 @@ permits.submitted / permits.compliance_* -> notification_worker
 ### Сервисы
 
 - `api_service`
-  HTTP API, CRUD для справочников, lifecycle endpoints для permit, чтение notifications.
+  HTTP API, CRUD для справочников, lifecycle endpoints для permit, чтение notifications, миграции.
 - `compliance_worker`
   Проверяет permit после `submit`.
   Если permit невалиден, переводит его в `rejected` и публикует `permits.compliance_failed`.
@@ -62,6 +62,7 @@ services/
   notification_worker/
     src/app/
     src/tests/
+.github/workflows/
 docker-compose.yml
 README.md
 CONTRIBUTING.md
@@ -213,6 +214,44 @@ poetry run pytest -q
 cd /Users/zhozhyr/PycharmProjects/gazprom/services/notification_worker
 poetry run pytest -q
 ```
+
+## Quality Checks
+
+Для каждого сервиса доступны одинаковые проверки:
+
+```bash
+poetry run isort --check-only src
+poetry run flake8 src --max-line-length 100
+poetry run mypy src/app
+poetry run pytest -q
+```
+
+Пример для `api_service`:
+
+```bash
+cd /Users/zhozhyr/PycharmProjects/gazprom/services/api_service
+poetry run isort --check-only src
+poetry run flake8 src --max-line-length 100
+poetry run mypy src/app
+poetry run pytest -q
+```
+
+## CI
+
+В репозитории настроен GitHub Actions workflow:
+
+- [ci.yml](/Users/zhozhyr/PycharmProjects/gazprom/.github/workflows/ci.yml)
+
+Что делает workflow:
+
+- job `test`
+  запускает `isort`, `flake8`, `mypy` и `pytest` для:
+  - `api_service`
+  - `approval_worker`
+  - `compliance_worker`
+  - `notification_worker`
+- job `build`
+  собирает Docker-образы всех сервисов после успешных тестов
 
 ## Postman
 

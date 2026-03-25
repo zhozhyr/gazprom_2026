@@ -2,7 +2,7 @@
 name = "permit-approval-worker"
 version = "0.1.0"
 description = "Kafka worker for moving permits into review state."
-authors = ["Codex <codex@example.com>"]
+authors = ["zhozhyr@gmail.com"]
 requires-poetry = ">=2.2.0"
 package-mode = false
 
@@ -18,10 +18,25 @@ aiosqlite = "^0.21.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
 pytest-asyncio = "^1.1.0"
+flake8 = "^7.3.0"
+isort = "^6.0.1"
+mypy = "^1.18.2"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.13"
+packages = ["app"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

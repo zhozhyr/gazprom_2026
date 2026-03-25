@@ -33,7 +33,9 @@ async def test_compliance_passes_when_safety_measures_and_approval_exist() -> No
                     comment="",
                 )
             ],
-            status_history=[PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")],
+            status_history=[
+                PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")
+            ],
         )
         session.add(permit)
         await session.commit()
@@ -63,7 +65,9 @@ async def test_compliance_fails_and_rejects_permit_when_safety_measures_empty() 
             work_type_id=1,
             created_by_id=1,
             approvals=[],
-            status_history=[PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")],
+            status_history=[
+                PermitStatusHistory(status=PermitStatus.submitted, note="Submitted by API")
+            ],
         )
         session.add(permit)
         await session.commit()

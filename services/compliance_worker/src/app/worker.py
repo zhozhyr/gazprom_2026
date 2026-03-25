@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from app.config import settings
 from app.db.session import SessionLocal
@@ -25,7 +26,7 @@ class ComplianceWorker:
             await self.publisher.stop()
 
     async def process_message(self, payload: dict[str, object]) -> None:
-        permit_id = int(payload["permit_id"])
+        permit_id = int(cast(int | str, payload["permit_id"]))
         async with SessionLocal() as session:
             service = ComplianceService(session)
             result = await service.process_submitted_permit(permit_id)
