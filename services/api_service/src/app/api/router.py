@@ -121,7 +121,7 @@ async def update_permit(
     permit_id: int,
     payload: PermitUpdate,
     session: AsyncSession = Depends(get_session),
-) -> PermitRead:
+) -> Permit:
     service = PermitService(session)
     return await service.update_permit(permit_id, payload)
 
