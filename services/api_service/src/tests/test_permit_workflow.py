@@ -7,6 +7,7 @@ from app.models.employee import Employee
 from app.models.facility import Facility
 from app.models.work_type import WorkType
 from app.schemas.permit import PermitAction, PermitCreate
+from app.schemas.permit import PermitUpdate
 from app.services.permit_service import PermitService
 
 
@@ -172,3 +173,44 @@ async def test_approve_with_wrong_employee_raises_not_found(
 
     assert exc_info.value.status_code == 404
     assert exc_info.value.detail == "Approval step not found for employee"
+
+
+@pytest.mark.asyncio
+async def test_update_draft_permit(monkeypatch: pytest.MonkeyPatch) -> None:
+    session_factory = await create_session_factory()
+
+    async def fake_publish(topic: str, payload: dict[str, object]) -> None:
+        return None
+
+    monkeypatch.setattr("app.services.permit_service.event_publisher.publish", fake_publish)
+
+    async with session_factory() as session:
+        await seed_reference_data(session)
+        service = PermitService(session)
+        permit = await service.create_permit(build_permit_payload())
+
+        updated = await service.update_permit(
+            permit.id,
+            PermitUpdate(title="Updated pipeline welding", safety_measures="Updated controls"),
+        )
+
+    assert updated.title == "Updated pipeline welding"
+    assert updated.safety_measures == "Updated controls"
+    assert updated.status.value == "draft"
+
+
+@pytest.mark.asyncio
+async def test_delete_draft_permit() -> None:
+    session_factory = await create_session_factory()
+
+    async with session_factory() as session:
+        await seed_reference_data(session)
+        service = PermitService(session)
+        permit = await service.create_permit(build_permit_payload())
+
+        await service.delete_permit(permit.id)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await service.get_permit(permit.id)
+
+    assert exc_info.value.status_code == 404

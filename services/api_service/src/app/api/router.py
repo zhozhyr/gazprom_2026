@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +11,7 @@ from app.models.work_type import WorkType
 from app.schemas.employee import EmployeeCreate, EmployeeRead
 from app.schemas.facility import FacilityCreate, FacilityRead
 from app.schemas.notification import NotificationRead
-from app.schemas.permit import PermitAction, PermitCreate, PermitRead
+from app.schemas.permit import PermitAction, PermitCreate, PermitRead, PermitUpdate
 from app.schemas.work_type import WorkTypeCreate, WorkTypeRead
 from app.services.permit_service import PermitService
 
@@ -114,6 +114,23 @@ async def list_permits(session: AsyncSession = Depends(get_session)) -> list[Per
 async def get_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> Permit:
     service = PermitService(session)
     return await service.get_permit(permit_id)
+
+
+@router.patch("/permits/{permit_id}", response_model=PermitRead)
+async def update_permit(
+    permit_id: int,
+    payload: PermitUpdate,
+    session: AsyncSession = Depends(get_session),
+) -> PermitRead:
+    service = PermitService(session)
+    return await service.update_permit(permit_id, payload)
+
+
+@router.delete("/permits/{permit_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_permit(permit_id: int, session: AsyncSession = Depends(get_session)) -> Response:
+    service = PermitService(session)
+    await service.delete_permit(permit_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/permits/{permit_id}/submit", response_model=PermitRead)

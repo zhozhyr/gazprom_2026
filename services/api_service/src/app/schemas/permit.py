@@ -22,6 +22,14 @@ class PermitAction(BaseModel):
     comment: str = ""
 
 
+class PermitUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    safety_measures: str | None = None
+    facility_id: int | None = None
+    work_type_id: int | None = None
+
+
 class PermitApprovalRead(ORMModel):
     id: int
     approver_employee_id: int

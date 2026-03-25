@@ -11,7 +11,7 @@ from app.models.permit_approval import PermitApproval
 from app.models.permit_status_history import PermitStatusHistory
 from app.models.work_type import WorkType
 from app.repositories.permit_repository import PermitRepository
-from app.schemas.permit import PermitAction, PermitCreate
+from app.schemas.permit import PermitAction, PermitCreate, PermitUpdate
 from app.services.event_publisher import event_publisher
 
 
@@ -58,13 +58,32 @@ class PermitService:
         await self.session.commit()
         return await self.get_permit(permit.id)
 
+    async def update_permit(self, permit_id: int, payload: PermitUpdate) -> Permit:
+        permit = await self.get_permit(permit_id)
+        self._ensure_draft_status(permit)
+
+        update_data = payload.model_dump(exclude_unset=True)
+        if "facility_id" in update_data and update_data["facility_id"] is not None:
+            await self._ensure_entity_exists(Facility, int(update_data["facility_id"]))
+        if "work_type_id" in update_data and update_data["work_type_id"] is not None:
+            await self._ensure_entity_exists(WorkType, int(update_data["work_type_id"]))
+
+        for field, value in update_data.items():
+            setattr(permit, field, value)
+
+        permit.status_history.append(PermitStatusHistory(status=PermitStatus.draft, note="Permit updated"))
+        await self.session.commit()
+        return await self.get_permit(permit.id)
+
+    async def delete_permit(self, permit_id: int) -> None:
+        permit = await self.get_permit(permit_id)
+        self._ensure_draft_status(permit)
+        await self.session.delete(permit)
+        await self.session.commit()
+
     async def submit_permit(self, permit_id: int) -> Permit:
         permit = await self.get_permit(permit_id)
-        if permit.status != PermitStatus.draft:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Only draft permits can be submitted",
-            )
+        self._ensure_draft_status(permit, message="Only draft permits can be submitted")
 
         permit.status = PermitStatus.submitted
         permit.status_history.append(
@@ -148,12 +167,27 @@ class PermitService:
             (Employee, created_by_id),
             (Employee, approver_employee_id),
         ):
-            result = await self.session.execute(select(model).where(model.id == value))
-            if result.scalar_one_or_none() is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Referenced entity not found: {model.__name__}#{value}",
-                )
+            await self._ensure_entity_exists(model, value)
+
+    async def _ensure_entity_exists(
+        self,
+        model: type[Facility] | type[WorkType] | type[Employee],
+        value: int,
+    ) -> None:
+        result = await self.session.execute(select(model).where(model.id == value))
+        if result.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Referenced entity not found: {model.__name__}#{value}",
+            )
+
+    @staticmethod
+    def _ensure_draft_status(
+        permit: Permit,
+        message: str = "Only draft permits can be modified",
+    ) -> None:
+        if permit.status != PermitStatus.draft:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
 
     @staticmethod
     def _get_approval_for_employee(permit: Permit, approver_employee_id: int) -> PermitApproval:

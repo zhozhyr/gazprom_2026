@@ -29,13 +29,21 @@ permits.submitted / permits.compliance_* -> notification_worker
 ### Сервисы
 
 - `api_service`
-  HTTP API, справочники, permit lifecycle, чтение notifications, миграции.
+  HTTP API, CRUD для справочников, lifecycle endpoints для permit, чтение notifications, миграции.
 - `compliance_worker`
   Проверяет permit после `submit`.
+  Если permit невалиден, переводит его в `rejected` и публикует `permits.compliance_failed`.
+  Если permit валиден, публикует `permits.compliance_passed`.
 - `approval_worker`
   Слушает `permits.compliance_passed` и переводит permit в `under_review`.
 - `notification_worker`
   Слушает lifecycle-события и сохраняет уведомления в таблицу `notifications`.
+
+### Хранилища и транспорт
+
+- `PostgreSQL` для всех основных таблиц
+- `Kafka` для событий между сервисами
+- `Zookeeper` для локального Kafka-стенда
 
 ## Структура репозитория
 
@@ -60,7 +68,9 @@ README.md
 CONTRIBUTING.md
 ```
 
-## Основные таблицы
+## Доменные сущности
+
+Основные таблицы:
 
 - `facilities`
 - `employees`
@@ -69,6 +79,17 @@ CONTRIBUTING.md
 - `permit_approvals`
 - `permit_status_history`
 - `notifications`
+
+### Статусы permit
+
+- `draft`
+- `submitted`
+- `under_review`
+- `approved`
+- `rejected`
+- `in_progress`
+- `completed`
+- `cancelled`
 
 ## API
 
@@ -134,8 +155,11 @@ poetry run uvicorn app.main:app --app-dir src --reload
 У каждого сервиса свой набор env-файлов:
 
 - `.env`
+  локальный запуск
 - `.env.example`
+  пример конфигурации
 - `.env.docker`
+  настройки для `docker compose`
 
 Примеры:
 
@@ -146,13 +170,19 @@ poetry run uvicorn app.main:app --app-dir src --reload
 
 ## Миграции
 
-Миграции есть у `api_service`.
+Миграции есть только у `api_service`, потому что схема базы контролируется через него.
 
 Применить миграции:
 
 ```bash
 cd /Users/zhozhyr/PycharmProjects/gazprom/services/api_service
 poetry run alembic upgrade head
+```
+
+Откатить последнюю миграцию:
+
+```bash
+poetry run alembic downgrade -1
 ```
 
 ## Тесты

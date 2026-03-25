@@ -2,7 +2,7 @@
 
 Revision ID: 0002_add_notifications
 Revises: 0001_initial_schema
-Create Date: 2026-03-24 12:30:00
+Create Date: 2026-03-24 21:00:00
 
 """
 from __future__ import annotations
@@ -27,11 +27,11 @@ def upgrade() -> None:
         sa.Column("payload", sa.JSON(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_notifications_event_type"), "notifications", ["event_type"], unique=False)
     op.create_index(op.f("ix_notifications_permit_id"), "notifications", ["permit_id"], unique=False)
+    op.create_index(op.f("ix_notifications_event_type"), "notifications", ["event_type"], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_notifications_permit_id"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_event_type"), table_name="notifications")
+    op.drop_index(op.f("ix_notifications_permit_id"), table_name="notifications")
     op.drop_table("notifications")
