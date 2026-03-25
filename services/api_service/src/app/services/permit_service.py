@@ -71,7 +71,9 @@ class PermitService:
         for field, value in update_data.items():
             setattr(permit, field, value)
 
-        permit.status_history.append(PermitStatusHistory(status=PermitStatus.draft, note="Permit updated"))
+        permit.status_history.append(
+            PermitStatusHistory(status=PermitStatus.draft, note="Permit updated")
+        )
         await self.session.commit()
         return await self.get_permit(permit.id)
 
